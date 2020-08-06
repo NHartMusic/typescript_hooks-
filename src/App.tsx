@@ -2,6 +2,7 @@ import React from 'react'
 import { Store } from './Store'
 import { IAction, IEpisode } from './interfaces'
 
+const EpisodeList = React.lazy<any>(() => import('./episodeList'))
 
 export default function App(): JSX.Element {
   const { state, dispatch } = React.useContext(Store)
@@ -20,33 +21,45 @@ export default function App(): JSX.Element {
     })
   }
 
-  const toggleFavAction = (episode: IEpisode): IAction => dispatch({
-    type: 'ADD_FAV',
-    payload: episode
-  })
+  const toggleFavAction = (episode: IEpisode): IAction => {
+    const episodeInFav = state.favourites.includes(episode)
+    let dispatchObj = {
+      type: 'ADD_FAV',
+      payload: episode
+    }
 
-  console.log(state)
+    if (episodeInFav) {
+      const favWithoutEpisode = state.favourites.filter((fav: IEpisode) => fav.id !== episode.id)
+      dispatchObj = {
+        type: 'REMOVE_FAV',
+        payload: favWithoutEpisode
+      }
+    }
+
+    return dispatch(dispatchObj)
+  }
+
+  const props = {
+    episodes: state.episodes,
+    toggleFavAction,
+    favourites: state.favourites
+  }
+
+  console.log(state.favourites.length)
   return (
     <>
-      <header className='header '>
+      <header className='header'>
         <h1>Rick and Morty</h1>
-        <p>Pick your favourite episode!</p>
+        <div>
+          <p>Pick your favourite episode!</p>
+          <p>You have selected {state.favourites.length} favourites</p>
+        </div>
       </header>
-
-      <section className='episode-layout'>
-        {state.episodes.map((episode: IEpisode) => {
-          return (
-            <section key={episode.id} className='episode-box'>
-              <img src={episode.image.medium} alt={`Rick and Morty ${episode.name}`}></img>
-              <div>{episode.name}</div>
-              <section>
-                <div>Season: {episode.season} Number: {episode.number}</div>
-                <button type='button' onClick={() => toggleFavAction(episode)}>Fav</button>
-              </section>
-            </section>
-          )
-        })}
-      </section>
+      <React.Suspense fallback={<>Loading...</>}>
+        <section className='episode-layout'>
+          <EpisodeList {...props} />
+        </section>
+      </React.Suspense>
     </>
   )
 }
