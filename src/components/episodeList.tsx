@@ -1,5 +1,5 @@
 import React from 'react'
-import { IAction, IEpisode } from './interfaces'
+import { IAction, IEpisode } from '../interfaces'
 
 export default function EpisodesList(props: any): Array<JSX.Element> {
     const { episodes, toggleFavAction, favourites } = props
